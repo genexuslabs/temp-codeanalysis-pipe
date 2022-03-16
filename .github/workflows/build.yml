@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    env:
+      Configuration: Release
+      SolutionFile: Solution.sln
+    
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    
+    - name: Restore packages
+      run: dotnet restore $Env:SolutionFile
+
+    - name: Build
+      run: dotnet build $Env:SolutionFile --no-restore --configuration $Env:Configuration
+       
+    - name: Pack
+      run: dotnet pack $Env:SolutionFile --no-restore --no-build --configuration $Env:Configuration
