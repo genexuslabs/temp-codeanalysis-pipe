@@ -51,7 +51,7 @@ jobs:
     - name: Set build configuration from dispatch
       if: ${{ github.event.inputs.configuration != '' }}
       run: |
-        $configuration = ${{github.event.inputs.configuration}}
+        $configuration = '${{github.event.inputs.configuration}}'
         echo "BuildConfiguration=$configuration" >> $env:GITHUB_ENV
     - name: Set default build configuration
       if: ${{ github.event.inputs.configuration == '' }}
