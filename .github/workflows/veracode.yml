@@ -60,7 +60,9 @@ jobs:
 
     - name: Create package for Veracode scan
       shell: powershell
-      run: Compress-Archive .out\*.* $env:ZipFilename
+      run: |
+        Get-ChildItem .out
+        Compress-Archive .out\*.* $env:ZipFilename
 
     - name: Download Veracode Static Analysis Pipeline scan jar
       shell: powershell
