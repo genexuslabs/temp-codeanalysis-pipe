@@ -9,6 +9,13 @@ name: Veracode Static Analysis Pipeline Scan
 
 on:
   workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Build project configuration'
+        default: Release
+        options:
+        - Release
+        - Debug
   push:
     branches: [ main ]
   pull_request:
@@ -42,7 +49,7 @@ jobs:
         repository: ''
 
     - name: Build
-      run: dotnet publish Solution.sln --configuration Release --output .out
+      run: dotnet publish Solution.sln --configuration ${{ github.event.inputs.configuration }} --output .out
 
     - name: Create package for Veracode scan
       shell: powershell
