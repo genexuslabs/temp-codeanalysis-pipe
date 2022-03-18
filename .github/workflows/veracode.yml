@@ -75,7 +75,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Execute scan
-      run: java -jar ".veracode\pipeline-scan.jar" --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --file $env:ZipFilename --fail_on_severity="Very High, High" --project-name "${{ github.ref_name }}" --project_url "${{ github.repositoryUrl }}" --project_ref "${{ github.ref }}"
+      run: java -jar ".veracode\pipeline-scan.jar" --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --file $env:ZipFilename --fail_on_severity="Very High, High" --project_name "${{ github.ref_name }}" --project_url "${{ github.repositoryUrl }}" --project_ref "${{ github.ref }}"
       continue-on-error: true
     - name: Convert pipeline scan output to SARIF format
       id: convert
