@@ -83,6 +83,15 @@ jobs:
       with:
         pipeline-results-json: results.json
         source-base-path-1: "^.*/${{ github.event.repository.name }}/dotnet/:dotnet/"
+
+    # Start:Workaround from https://githubmemory.com/index.php/repo/pmd/pmd-github-action/issues/34
+    - name: Relativize SARIF
+      shell: bash
+      run: |
+        jq ".runs[0].results[].locations[].physicalLocation.artifactLocation.uri |= sub(\"${GITHUB_WORKSPACE}/\"; \"\")" veracode-results.sarif > custom-veracode-results.sarif
+        mv -f custom-veracode-results.sarif veracode-results.sarif
+    # End:Workaround
+
     - uses: github/codeql-action/upload-sarif@v1
       with:
         # Path to SARIF file relative to the root of the repository
