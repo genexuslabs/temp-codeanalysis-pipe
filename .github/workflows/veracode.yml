@@ -9,11 +9,15 @@ name: Veracode Static Analysis Pipeline Scan
 
 on:
   workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Build project configuration (options:Release|Debug)'
+        default: 'Release'
+        options:
+        - Release
+        - Debug
   push:
     branches: [ main ]
-  #pull_request:
-  #  # The branches below must be a subset of the branches above
-  #  branches: [ main ]
   #schedule:
   #  - cron: '44 4 * * 5'
 
@@ -26,35 +30,49 @@ jobs:
   build-and-pipeline-scan:
     env:
       ZipFilename: netClassesForScan.zip
+
     # The type of runner that the job will run on
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    #runs-on: ubuntu-latest
+
     runs-on: windows-latest
+
     steps:
 
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it and copies all sources into ZIP file for submitting for analysis. Replace this section with your applications build steps
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
       with:
         repository: ''
-
+    
+    - name: Set build configuration from dispatch
+      if: ${{ github.event.inputs.configuration != '' }}
+      run: |
+        $configuration = '${{github.event.inputs.configuration}}'
+        echo "BuildConfiguration=$configuration" >> $env:GITHUB_ENV
+    - name: Set default build configuration
+      if: ${{ github.event.inputs.configuration == '' }}
+      run: echo "BuildConfiguration=Release" >> $env:GITHUB_ENV
     - name: Build
-      run: dotnet publish Solution.sln --configuration Release --output .out
+      run: |
+        $configuration = "Release"
+        dotnet publish Solution.sln --configuration $Env:BuildConfiguration --output .out
 
-    - name: Create package for Veracode
-      run: compress-archive .out\*.* $env:ZipFilename
+    - name: Create package for Veracode scan
       shell: powershell
+      run: Compress-Archive .out\*.* $env:ZipFilename
 
-    # download the Veracode Static Analysis Pipeline scan jar
-    - run: curl --silent --show-error --fail -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
-    - run: expand-archive .\pipeline-scan-LATEST.zip -DestinationPath . -Force
+    - name: Download Veracode Static Analysis Pipeline scan jar
       shell: powershell
+      run: |
+        Invoke-WebRequest -Uri "https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip" -OutFile "pipeline-scan.zip"
+        Expand-Archive "pipeline-scan.zip" -DestinationPath ".veracode" -Force
 
-    - uses: actions/setup-java@v1
+    - name: Upload package for scan
+      uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - run: java -jar pipeline-scan.jar --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file $env:ZipFilename
+    - run: java -jar ".veracode\pipeline-scan.jar" --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file $env:ZipFilename
       continue-on-error: true
     - name: Convert pipeline scan output to SARIF format
       id: convert
