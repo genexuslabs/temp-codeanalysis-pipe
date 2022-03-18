@@ -60,7 +60,9 @@ jobs:
 
     - name: Create package for Veracode scan
       shell: powershell
-      run: Compress-Archive .out\*.* $env:ZipFilename
+      run: |
+        Get-ChildItem .out
+        Compress-Archive .out\*.* $env:ZipFilename
 
     - name: Download Veracode Static Analysis Pipeline scan jar
       shell: powershell
@@ -73,14 +75,37 @@ jobs:
       with:
         java-version: 1.8
     - name: Execute scan
-      run: java -jar ".veracode\pipeline-scan.jar" --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file $env:ZipFilename
+      run: java -jar ".veracode\pipeline-scan.jar" --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --file $env:ZipFilename --fail_on_severity="Very High, High" --project_name "${{ github.ref_name }}" --project_url "${{ github.server_url }}/${{ github.repository }}" --project_ref "${{ github.ref }}"
       continue-on-error: true
+
+    # Start:Workaround  (tips from https://githubmemory.com/index.php/repo/pmd/pmd-github-action/issues/34)
+    #- name: Relativize results.json
+    #  shell: powershell
+    #  run: |
+    #    echo "[info] ***CONTENT OF results.json"
+    #    Get-Content results.json
+    #    echo "[info] GitHub_Workspace: ${{github.repository}}"
+    #    $myResultJson = "my-results.json"
+    #    Copy-Item results.json $myResultJson
+    #    $txt = Get-Content -path $myResultJson
+    #    $txt -Replace '\"file\":.s*\".*${{github.repository}}/', '"file": "' | Out-File results.json
+    #    echo "[info] ***CONTENT OF results.json WITH RELATIVE PATHS"
+    #    Get-Content results.json
+    # End:Workaround
+
     - name: Convert pipeline scan output to SARIF format
       id: convert
       uses: veracode/veracode-pipeline-scan-results-to-sarif@ff08ae5b45d5384cb4679932f184c013d34da9be
       with:
         pipeline-results-json: results.json
         source-base-path-1: "^.*/${{ github.event.repository.name }}/dotnet/:dotnet/"
+
+    - name: Print SARIF json
+      shell: powershell
+      run: |
+        echo "[info] ***CONTENT OF veracode-results.sarif"
+        Get-Content veracode-results.sarif
+
     - uses: github/codeql-action/upload-sarif@v1
       with:
         # Path to SARIF file relative to the root of the repository
