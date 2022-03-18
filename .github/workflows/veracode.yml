@@ -82,11 +82,11 @@ jobs:
     - name: Relativize results.json
       shell: powershell
       run: |
-        echo "[info] GitHub_Workspace: ${GITHUB_WORKSPACE}"
+        echo "[info] GitHub_Workspace: ${{github.repository}}"
         $myResultJson = "my-results.json"
         Copy-Item results.json $myResultJson
         $txt = Get-Content -path $myResultJson
-        $txt -Replace '\"file\":.s*\".*${GITHUB_WORKSPACE}/', '"file": "' | Out-File results.json
+        $txt -Replace '\"file\":.s*\".*${{github.repository}}/', '"file": "' | Out-File results.json
     # End:Workaround
 
 
