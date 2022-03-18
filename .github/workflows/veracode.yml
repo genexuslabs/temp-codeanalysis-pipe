@@ -79,21 +79,19 @@ jobs:
       continue-on-error: true
 
     # Start:Workaround  (tips from https://githubmemory.com/index.php/repo/pmd/pmd-github-action/issues/34)
-    - name: Relativize results.json
-      shell: powershell
-      run: |
-        echo "[info] ***CONTENT OF results.json"
-        Get-Content results.json
-        echo "[info] GitHub_Workspace: ${{github.repository}}"
-        $myResultJson = "my-results.json"
-        Copy-Item results.json $myResultJson
-        $txt = Get-Content -path $myResultJson
-        $txt -Replace '\"file\":.s*\".*${{github.repository}}/', '"file": "' | Out-File results.json
-        echo "[info] ***CONTENT OF results.json WITH RELATIVE PATHS"
-        Get-Content results.json
-
+    #- name: Relativize results.json
+    #  shell: powershell
+    #  run: |
+    #    echo "[info] ***CONTENT OF results.json"
+    #    Get-Content results.json
+    #    echo "[info] GitHub_Workspace: ${{github.repository}}"
+    #    $myResultJson = "my-results.json"
+    #    Copy-Item results.json $myResultJson
+    #    $txt = Get-Content -path $myResultJson
+    #    $txt -Replace '\"file\":.s*\".*${{github.repository}}/', '"file": "' | Out-File results.json
+    #    echo "[info] ***CONTENT OF results.json WITH RELATIVE PATHS"
+    #    Get-Content results.json
     # End:Workaround
-
 
     - name: Convert pipeline scan output to SARIF format
       id: convert
