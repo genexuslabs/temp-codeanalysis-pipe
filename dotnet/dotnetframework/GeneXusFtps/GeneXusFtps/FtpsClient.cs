@@ -17,7 +17,7 @@ namespace GeneXusFtps.GeneXusFtps
     public class FtpsClient : IFtpsClientObject
     {
         private FtpClient client;
-        private string pwd;
+        private string m_WorkingDirectory;
         private ExtensionsWhiteList whiteList;
 
         [SecuritySafeCritical]
@@ -128,7 +128,7 @@ namespace GeneXusFtps.GeneXusFtps
                 {
                     this.client.SetWorkingDirectory(remoteDir);
 
-                    this.pwd = remoteDir;
+                    this.m_WorkingDirectory = remoteDir;
                 }
             }
             catch (Exception e)
@@ -178,7 +178,7 @@ namespace GeneXusFtps.GeneXusFtps
                 {
                     this.client.SetWorkingDirectory(Path.GetDirectoryName(remoteFilePath));
 
-                    this.pwd = Path.GetDirectoryName(remoteFilePath);
+                    this.m_WorkingDirectory = Path.GetDirectoryName(remoteFilePath);
                 }
             }
             catch (Exception e)
@@ -230,21 +230,21 @@ namespace GeneXusFtps.GeneXusFtps
                 this.error.setError("FS007", "The connection is invalid, reconect");
                 return "";
             }
-            String pwd = "";
+            String workingDirectory = "";
             try
             {
-                pwd = this.client.GetWorkingDirectory();
+                workingDirectory = this.client.GetWorkingDirectory();
             }
             catch (IOException)
             {
                 this.error.setError("FS006", "Could not obtain working directory, try reconnect");
                 return "";
             }
-            if (pwd == null)
+            if (workingDirectory == null)
             {
-                return this.pwd;
+                return this.m_WorkingDirectory;
             }
-            return pwd;
+            return workingDirectory;
         }
 
         /******** EXTERNAL OBJECT PUBLIC METHODS - END ********/
