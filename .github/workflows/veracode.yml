@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
     inputs:
       configuration:
-        description: 'Build project configuration'
-        default: Release
+        description: 'Build project configuration (options:Release|Debug)'
+        default: 'Release'
         options:
         - Release
         - Debug
@@ -47,9 +47,19 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: ''
-
+    
+    - name: Set build configuration from dispatch
+      if: ${{ github.event.inputs.configuration != '' }}
+      run: |
+        $configuration = ${{github.event.inputs.configuration}}
+        echo "BuildConfiguration=$configuration" >> $env:GITHUB_ENV
+    - name: Set default build configuration
+      if: ${{ github.event.inputs.configuration == '' }}
+      run: echo "BuildConfiguration=Release" >> $env:GITHUB_ENV
     - name: Build
-      run: dotnet publish Solution.sln --configuration ${{ github.event.inputs.configuration }} --output .out
+      run: |
+        $configuration = "Release"
+        dotnet publish Solution.sln --configuration $Env:BuildConfiguration --output .out
 
     - name: Create package for Veracode scan
       shell: powershell
