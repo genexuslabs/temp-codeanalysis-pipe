@@ -82,11 +82,16 @@ jobs:
     - name: Relativize results.json
       shell: powershell
       run: |
+        echo "[info] ***CONTENT OF results.json"
+        Get-Content results.json
         echo "[info] GitHub_Workspace: ${{github.repository}}"
         $myResultJson = "my-results.json"
         Copy-Item results.json $myResultJson
         $txt = Get-Content -path $myResultJson
         $txt -Replace '\"file\":.s*\".*${{github.repository}}/', '"file": "' | Out-File results.json
+        echo "[info] ***CONTENT OF results.json WITH RELATIVE PATHS"
+        Get-Content results.json
+
     # End:Workaround
 
 
@@ -96,6 +101,13 @@ jobs:
       with:
         pipeline-results-json: results.json
         source-base-path-1: "^.*/${{ github.event.repository.name }}/dotnet/:dotnet/"
+
+    - name: Print SARIF json
+      shell: powershell
+      run: |
+        echo "[info] ***CONTENT OF veracode-results.sarif"
+        Get-Content veracode-results.sarif
+
     - uses: github/codeql-action/upload-sarif@v1
       with:
         # Path to SARIF file relative to the root of the repository
