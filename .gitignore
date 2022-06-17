@@ -1,5 +1,4 @@
 /.vs
-/.veracode
 bin
 obj
 /pipeline-scan.zip
