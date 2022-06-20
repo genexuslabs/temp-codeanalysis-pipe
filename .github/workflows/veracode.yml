@@ -87,3 +87,11 @@ jobs:
       with:
         # Path to SARIF file relative to the root of the repository
         sarif_file: veracode-results.sarif
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: veracode_json_and_sarif_results
+        path: |
+         results.json
+         veracode-results.sarif
+        retention-days: 15
